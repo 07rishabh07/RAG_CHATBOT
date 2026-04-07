@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RAG Chatbot</title>
+</head>
+<body>
+
+<h2>RAG Chatbot</h2>
+
+<input type="text" id="question" placeholder="Ask a question..." size="50">
+<button onclick="ask()">Ask</button>
+
+<h3>Answer:</h3>
+<p id="answer"></p>
+
+<script>
+async function ask() {
+    let question = document.getElementById("question").value;
+
+    let response = await fetch("http://127.0.0.1:8000/ask", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ question })
+    });
+
+    let data = await response.json();
+
+    if (data.answer === "I don't know") {
+        document.getElementById("answer").innerText = 
+            "The answer is not available in the provided documents.";
+    } else {
+        document.getElementById("answer").innerText = data.answer;
+    }
+}
+</script>
+
+</body>
+</html>
