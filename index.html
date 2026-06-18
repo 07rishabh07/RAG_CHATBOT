@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Chatbot</title>
+    <style>
+        :root {
+            color-scheme: light;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            margin: 0;
+            background: #f4f7fb;
+            color: #18202f;
+        }
+
+        main {
+            max-width: 860px;
+            margin: 0 auto;
+            padding: 32px 20px;
+        }
+
+        h1 {
+            margin: 0 0 20px;
+            font-size: 32px;
+        }
+
+        form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 22px;
+        }
+
+        input {
+            flex: 1;
+            min-width: 0;
+            padding: 12px 14px;
+            border: 1px solid #c8d2e1;
+            border-radius: 6px;
+            font-size: 16px;
+        }
+
+        button {
+            padding: 12px 18px;
+            border: 0;
+            border-radius: 6px;
+            background: #1b6ca8;
+            color: white;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            cursor: wait;
+            opacity: 0.7;
+        }
+
+        section {
+            margin-top: 18px;
+        }
+
+        .panel {
+            background: white;
+            border: 1px solid #dbe3ef;
+            border-radius: 8px;
+            padding: 18px;
+        }
+
+        pre {
+            white-space: pre-wrap;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .error {
+            color: #b42318;
+        }
+
+        @media (max-width: 640px) {
+            form {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <h1>RAG Chatbot</h1>
+
+        <form id="ask-form">
+            <input id="question" type="text" placeholder="Ask a question from the documents" autocomplete="off" required>
+            <button id="ask-button" type="submit">Ask</button>
+        </form>
+
+        <section class="panel">
+            <h2>Answer</h2>
+            <pre id="answer">Ask a question to get started.</pre>
+        </section>
+
+        <section class="panel">
+            <h2>Retrieved Context</h2>
+            <pre id="context">No context loaded yet.</pre>
+        </section>
+    </main>
+
+    <script>
+        const form = document.getElementById("ask-form");
+        const input = document.getElementById("question");
+        const button = document.getElementById("ask-button");
+        const answer = document.getElementById("answer");
+        const context = document.getElementById("context");
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            const question = input.value.trim();
+            if (!question) return;
+
+            button.disabled = true;
+            answer.classList.remove("error");
+            answer.textContent = "Thinking...";
+            context.textContent = "";
+
+            try {
+                const response = await fetch("/ask", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({ question })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(data.error || "Request failed");
+                }
+
+                answer.textContent = data.answer || "I don't know";
+                context.textContent = (data.retrieved_context || []).join("\n\n---\n\n");
+            } catch (error) {
+                answer.classList.add("error");
+                answer.textContent = error.message;
+                context.textContent = "Start the server with: python RAG/server.py";
+            } finally {
+                button.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
