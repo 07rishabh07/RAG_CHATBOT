@@ -1,4 +1,5 @@
 import json
+import os
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 
@@ -8,8 +9,8 @@ except ImportError:
     from rag import answer_question, build_rag
 
 BASE_DIR = Path(__file__).resolve().parent
-HOST = "127.0.0.1"
-PORT = 8000
+HOST = os.getenv("HOST", "0.0.0.0")
+PORT = int(os.getenv("PORT", "8000"))
 
 CHUNKS, INDEX = build_rag()
 
@@ -56,7 +57,8 @@ class RAGRequestHandler(SimpleHTTPRequestHandler):
 
 def main():
     server = ThreadingHTTPServer((HOST, PORT), RAGRequestHandler)
-    print(f"RAG chatbot running at http://{HOST}:{PORT}", flush=True)
+    local_url = "http://127.0.0.1:8000" if HOST == "0.0.0.0" else f"http://{HOST}:{PORT}"
+    print(f"RAG chatbot running at {local_url}", flush=True)
     print("Press Ctrl+C to stop the server.", flush=True)
     server.serve_forever()
 
