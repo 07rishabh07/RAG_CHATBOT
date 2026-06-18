@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: rag-chatbot
+    runtime: python
+    buildCommand: python --version
+    startCommand: python server.py
